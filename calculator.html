@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f0f0f0;
+        }
+
+        #container {
+            display: grid;
+            grid-template-columns: repeat(4, 70px);
+            gap: 10px;
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        #display {
+            outline: none;
+            grid-column: span 4;
+            height: 50px;
+            font-size: 26px;
+            text-align: right;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            height: 50px;
+            font-size: 20px;
+            border: none;
+            border-radius: 8px;
+            background: #eee;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .op {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .eq {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .fn {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+
+        .power-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #4CAF50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .power-btn.off {
+            background: #f4433683;
+        }
+
+        .power-off button {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div class="power-btn">⏻</div>
+        <input id="display" readonly value="0" />
+    </div>
+
+    <script>
+        const btns = ["AC", "DEL", "%", "/", 7, 8, 9, "*", 4, 5, 6, "-", 1, 2, 3, "+", 0, "00", ".", "="];
+        const container = document.getElementById("container");
+        const display = document.getElementById("display");
+        const powerBtn = document.querySelector('.power-btn');
+        let exp = "";
+        let isOn = true;
+
+        // Create calculator buttons
+        btns.forEach(txt => {
+            const btn = document.createElement("button");
+            btn.textContent = txt;
+            btn.className = txt === "=" ? "eq" : txt === "AC" || txt === "DEL" ? "fn" : isNaN(txt) && txt !== "." && txt !== "00" ? "op" : "";
+            if (txt === 0) btn.classList.add("zero");
+            container.appendChild(btn);
+
+            btn.onclick = () => {
+                if (!isOn) return;
+
+                if (txt === "AC") {
+                    exp = "";
+                }
+                else if (txt === "DEL") {
+                    exp = exp.slice(0, -1);
+                }
+                else if (txt === "=") {
+                    try { exp = eval(exp).toString(); } catch { exp = "0"; }
+                }
+                else if (txt === "%") {
+                    const lastMatch = exp.match(/([\d.]+)([+\-*/])([\d.]+)$/);
+                    if (lastMatch) {
+                        const [_, a, op, b] = lastMatch;
+                        const result = eval(`${a} ${op} (${a} * ${b} / 100)`);
+                        exp = exp.replace(/([\d.]+)([+\-*/])([\d.]+)$/, result);
+                    } else {
+                        const onlyNum = exp.match(/([\d.]+)$/);
+                        if (onlyNum) {
+                            const [num] = onlyNum;
+                            exp = exp.replace(/([\d.]+)$/, parseFloat(num) / 100);
+                        }
+                    }
+                }
+                else {
+                    if (exp === "Infinity" || exp === "NaN") exp = "";
+                    exp += txt;
+                }
+
+                display.value = exp || "0";
+            };
+        });
+
+        // Power button functionality
+        powerBtn.addEventListener('click', () => {
+            isOn = !isOn;
+            if (isOn) {
+                powerBtn.classList.remove('off');
+                container.classList.remove('power-off');
+                display.value = exp || "0";
+                display.style.color = "black"
+            } else {
+                powerBtn.classList.add('off');
+                container.classList.add('power-off');
+                display.value = "OFF";
+                display.style.color = "red"
+            }
+        });
+    </script>
+</body>
+
+</html>
